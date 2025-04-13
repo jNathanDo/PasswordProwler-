@@ -1,0 +1,68 @@
+from shiny import App, ui, reactive, render
+import random
+import json
+
+# Load passwords from JSON
+with open("passwords.json", "r") as f:
+    password_data = json.load(f)["passwords"]
+
+# Group passwords by difficulty
+passwords_by_difficulty = {
+    "easy": [p for p in password_data if p["difficulty"] == "easy"],
+    "medium": [p for p in password_data if p["difficulty"] == "medium"],
+    "hard": [p for p in password_data if p["difficulty"] == "hard"]
+}
+
+app_ui = ui.page_fluid(
+    ui.h2("🔐 Password Prowler"),
+    ui.input_select("difficulty", "Choose a difficulty:", ["easy", "medium", "hard"]),
+    ui.output_ui("hints_ui"),
+    ui.input_text("guess", "Enter your password guess:"),
+    ui.output_text("result"),
+    ui.output_text("facts"),
+    ui.input_action_button("submit", "Submit Guess", class_="btn-primary")
+)
+
+def server(input, output, session):
+    selected_password = reactive.Value(None)
+    used_passwords = set()
+
+    @reactive.effect
+    def _():
+        # Pick a new random password on difficulty change
+        difficulty = input.difficulty()
+        available = [p for p in passwords_by_difficulty[difficulty] if p["password"] not in used_passwords]
+        if not available:
+            selected_password.set(None)
+            return
+        chosen = random.choice(available)
+        selected_password.set(chosen)
+        used_passwords.add(chosen["password"])
+
+    @output
+    @render.ui
+    def hints_ui():
+        pw = selected_password.get()
+        if pw:
+            return ui.tags.ul(*[ui.tags.li(hint) for hint in pw["hints"]])
+        return "No password available for this difficulty."
+
+    @output
+    @render.text
+    def result():
+        if input.submit() == 0:
+            return ""
+        pw = selected_password.get()
+        if not pw:
+            return "No password available."
+        return "✅ Correct!" if input.guess().strip() == pw["password"] else "❌ Incorrect, try again!"
+
+    @output
+    @render.text
+    def facts():
+        pw = selected_password.get()
+        if input.submit() == 0 or not pw:
+            return ""
+        return "\n".join(pw["facts"])
+
+app = App(app_ui, server)
