@@ -68,12 +68,17 @@ def reset_game():
     st.session_state.hint_index = 0
     st.session_state.show_hint = False
     st.session_state.show_fact = False
-    st.experimental_rerun()
+    st.session_state.force_rerun = True
 
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
-    # --- Initial Session State ---
+    # Safe rerun block
+    if st.session_state.get("force_rerun", False):
+        st.session_state.force_rerun = False
+        st.experimental_rerun()
+
+    # Initial state
     if "game_state" not in st.session_state:
         st.session_state.game_state = "menu"
         st.session_state.guesses = []
@@ -85,7 +90,7 @@ def main():
         st.session_state.show_hint = False
         st.session_state.show_fact = False
 
-    # --- Menu Screen ---
+    # --- Menu ---
     if st.session_state.game_state == "menu":
         st.title("🔐 Password Prowler")
         st.subheader("Choose a difficulty:")
@@ -93,17 +98,20 @@ def main():
             st.session_state.difficulty = Difficulty.EASY
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+            st.session_state.force_rerun = True
+            return
         if st.button("Medium"):
             st.session_state.difficulty = Difficulty.MEDIUM
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+            st.session_state.force_rerun = True
+            return
         if st.button("Hard"):
             st.session_state.difficulty = Difficulty.HARD
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+            st.session_state.force_rerun = True
+            return
 
     # --- Game Screen ---
     elif st.session_state.game_state == "playing":
@@ -120,13 +128,14 @@ def main():
                     color_codes = get_color_codes(pwd, guess)
                     st.session_state.guesses.append((guess, color_codes))
                     st.session_state.input_guess = ""
-
                     if all(code == 0 for code in color_codes):
                         st.session_state.game_state = "won"
                         st.session_state.show_fact = True
-                        st.experimental_rerun()
+                        st.session_state.force_rerun = True
+                        return
                 else:
                     st.warning(f"Guess must be {len(pwd)} characters.")
+
         with col2:
             if st.button("Hint"):
                 st.session_state.show_hint = True
@@ -134,11 +143,13 @@ def main():
                     st.session_state.hint_index + 1,
                     len(st.session_state.password_obj.hints)
                 )
+
         with col3:
             if st.button("🔙 Back to Menu"):
                 reset_game()
+                return
 
-        # Display previous guesses
+        # Previous Guesses
         st.write("### Previous Guesses:")
         for guess_str, codes in st.session_state.guesses[-7:]:
             cols = st.columns(len(guess_str))
@@ -149,7 +160,7 @@ def main():
                         unsafe_allow_html=True
                     )
 
-        # Show hints if requested
+        # Hints
         if st.session_state.show_hint and st.session_state.hint_index > 0:
             st.info("### Hint:")
             for i in range(st.session_state.hint_index):
@@ -166,6 +177,7 @@ def main():
 
         if st.button("Play Again"):
             reset_game()
+            return
 
 if __name__ == "__main__":
     main()
