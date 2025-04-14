@@ -63,7 +63,7 @@ def reset_game():
     st.session_state.game_state = "menu"
     st.session_state.password_obj = None
     st.session_state.guesses = []
-    st.session_state.input_guess = "guess"
+    st.session_state.input_guess = ""
     st.session_state.difficulty = None
     st.session_state.hint_index = 0
     st.session_state.show_hint = False
