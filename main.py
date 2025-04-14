@@ -68,6 +68,7 @@ def reset_game():
     st.session_state.hint_index = 0
     st.session_state.show_hint = False
     st.session_state.show_fact = False
+    st.experimental_rerun()
 
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
@@ -92,14 +93,17 @@ def main():
             st.session_state.difficulty = Difficulty.EASY
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
+            st.experimental_rerun()
         if st.button("Medium"):
             st.session_state.difficulty = Difficulty.MEDIUM
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
+            st.experimental_rerun()
         if st.button("Hard"):
             st.session_state.difficulty = Difficulty.HARD
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
+            st.experimental_rerun()
 
     # --- Game Screen ---
     elif st.session_state.game_state == "playing":
@@ -115,9 +119,12 @@ def main():
                 if len(guess) == len(pwd):
                     color_codes = get_color_codes(pwd, guess)
                     st.session_state.guesses.append((guess, color_codes))
+                    st.session_state.input_guess = ""
+
                     if all(code == 0 for code in color_codes):
                         st.session_state.game_state = "won"
                         st.session_state.show_fact = True
+                        st.experimental_rerun()
                 else:
                     st.warning(f"Guess must be {len(pwd)} characters.")
         with col2:
