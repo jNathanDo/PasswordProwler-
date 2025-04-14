@@ -1,4 +1,4 @@
-simport streamlit as st
+import streamlit as st
 import random
 import json
 from enum import Enum
