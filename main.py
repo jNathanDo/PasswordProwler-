@@ -1,105 +1,134 @@
 import streamlit as st
 import random
 import json
+from enum import Enum
 
-# Enum substitute for difficulty levels
-DIFFICULTIES = {
-    "Easy": 1,
-    "Medium": 2,
-    "Hard": 3
-}
-
+class Difficulty(Enum):
+    EASY = 1
+    MEDIUM = 2
+    HARD = 3
 
 class Password:
-    def __init__(self, entry):
+    def __init__(self):
+        self.password = ""
+        self.difficulty = ""
+        self.hints = []
+        self.characteristics = []
+        self.facts = []
+
+    def load_from_dict(self, entry):
         self.password = entry["password"]
         self.difficulty = entry["difficulty"]
         self.hints = entry["hints"]
         self.characteristics = entry["characteristics"]
         self.facts = entry["facts"]
 
-
 def parse_json():
-    with open("passwords.json", "r") as f:
-        data = json.load(f)
-    return data.get("passwords", [])
+    try:
+        with open("passwords.json", "r") as f:
+            return json.load(f)
+    except Exception as e:
+        st.error(f"Error reading passwords.json: {e}")
+        return {}
 
+def get_password(data, diff):
+    entries = [entry for entry in data.get("passwords", []) if entry["difficulty"] == diff.name.lower()]
+    if not entries:
+        return None
+    chosen = random.choice(entries)
+    pwd_obj = Password()
+    pwd_obj.load_from_dict(chosen)
+    return pwd_obj
 
-def pick_password(difficulty, used_passwords):
-    all_pwds = parse_json()
-    filtered = [Password(p) for p in all_pwds if p["difficulty"] == difficulty.lower()]
-
-    unused = [p for p in filtered if p.password not in used_passwords]
-
-    if not unused:
-        st.warning("All passwords used for this difficulty. Reusing previous ones.")
-        unused = filtered
-
-    chosen = random.choice(unused)
-    return chosen
-
-
-def get_char_color(pwd, guess):
-    result = []
+def get_color_codes(password, guess):
+    color_codes = []
     for i, char in enumerate(guess):
-        if i < len(pwd):
-            if char == pwd[i]:
-                result.append("🟩")  # green
-            elif char.lower() == pwd[i].lower():
-                result.append("🟨")  # yellow
-            elif char.lower() in pwd.lower():
-                result.append("🟧")  # orange
+        if i < len(password):
+            if char == password[i]:
+                color_codes.append(0)  # Correct
+            elif char.lower() == password[i].lower():
+                color_codes.append(1)  # Right char, wrong case
+            elif char.lower() in password.lower():
+                color_codes.append(2)  # In password, wrong spot
             else:
-                result.append("🟥")  # red
+                color_codes.append(3)  # Not in password
         else:
-            result.append("⬜")  # guess too long
-    return result
+            color_codes.append(3)
+    return color_codes
 
+def color_map(code):
+    return ["green", "yellow", "orange", "red"][code]
 
-# Session state initialization
-if "game_state" not in st.session_state:
+def reset_game():
     st.session_state.game_state = "menu"
-    st.session_state.used_passwords = []
+    st.session_state.password_obj = None
     st.session_state.guesses = []
-    st.session_state.selected_pwd = None
+    st.session_state.input_guess = ""
+    st.session_state.difficulty = None
 
-# Main menu
-if st.session_state.game_state == "menu":
-    st.title("🔐 Password Prowler")
-    st.markdown("Choose a difficulty to start:")
+def main():
+    st.set_page_config(page_title="Password Prowler", layout="centered")
 
-    for label, level in DIFFICULTIES.items():
-        if st.button(label):
-            pwd = pick_password(label, st.session_state.used_passwords)
-            st.session_state.selected_pwd = pwd
-            st.session_state.used_passwords.append(pwd.password)
-            st.session_state.guesses = []
+    # --- Initial Session State ---
+    if "game_state" not in st.session_state:
+        st.session_state.game_state = "menu"
+        st.session_state.guesses = []
+        st.session_state.data = parse_json()
+        st.session_state.password_obj = None
+        st.session_state.input_guess = ""
+        st.session_state.difficulty = None
+
+    # --- Menu Screen ---
+    if st.session_state.game_state == "menu":
+        st.title("🔐 Password Prowler")
+        st.subheader("Choose a difficulty:")
+        if st.button("Easy"):
+            st.session_state.difficulty = Difficulty.EASY
+            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+        if st.button("Medium"):
+            st.session_state.difficulty = Difficulty.MEDIUM
+            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
+            st.session_state.game_state = "playing"
+        if st.button("Hard"):
+            st.session_state.difficulty = Difficulty.HARD
+            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
+            st.session_state.game_state = "playing"
 
-# Game loop
-elif st.session_state.game_state == "playing":
-    pwd = st.session_state.selected_pwd
-    st.title(f"Mode: {pwd.difficulty.title()}")
+    # --- Game Screen ---
+    elif st.session_state.game_state == "playing":
+        pwd = st.session_state.password_obj.password
+        st.title(f"Game Mode: {st.session_state.difficulty.name}")
+        st.subheader(f"Guess the {len(pwd)}-character password!")
 
-    guess = st.text_input("Enter your guess:")
+        guess = st.text_input("Enter your guess:", key="input_guess", max_chars=len(pwd))
 
-    if guess:
-        result = get_char_color(pwd.password, guess)
-        st.session_state.guesses.append((guess, result))
-        st.experimental_rerun()
+        if st.button("Submit Guess"):
+            if len(guess) == len(pwd):
+                color_codes = get_color_codes(pwd, guess)
+                st.session_state.guesses.append((guess, color_codes))
+                if all(code == 0 for code in color_codes):
+                    st.session_state.game_state = "won"
+            else:
+                st.warning(f"Guess must be {len(pwd)} characters.")
 
-    for g, colors in st.session_state.guesses:
-        st.write("".join(colors), f"**{g}**")
+        st.write("### Previous Guesses:")
+        for guess_str, codes in st.session_state.guesses[-7:]:
+            cols = st.columns(len(guess_str))
+            for i, c in enumerate(guess_str):
+                with cols[i]:
+                    st.markdown(
+                        f'<div style="background-color:{color_map(codes[i])}; color: white; text-align: center; border-radius: 5px; padding: 10px;">{c}</div>',
+                        unsafe_allow_html=True
+                    )
 
-    if st.session_state.guesses and st.session_state.guesses[-1][0] == pwd.password:
-        st.balloons()
-        st.success("🎉 You guessed the password!")
+    # --- Win Screen ---
+    elif st.session_state.game_state == "won":
+        st.title("🎉 You Win!")
+        st.write(f"Password: `{st.session_state.password_obj.password}`")
         if st.button("Play Again"):
-            st.session_state.game_state = "menu"
-            st.experimental_rerun()
+            reset_game()
 
-# Fallback
-else:
-    st.session_state.game_state = "menu"
-    st.experimental_rerun()
+if __name__ == "__main__":
+    main()
+
