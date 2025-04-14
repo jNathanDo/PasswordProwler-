@@ -16,13 +16,6 @@ class Password:
         self.characteristics = []
         self.facts = []
 
-    def main():
-    if st.session_state.get("force_reset"):
-        reset_game()  # This resets all the keys including input_guess
-        st.session_state.force_reset = False  # Clear the flag
-        st.experimental_rerun()  # Now force a clean rerun
-        return
-    
     def load_from_dict(self, entry):
         self.password = entry["password"]
         self.difficulty = entry["difficulty"]
@@ -70,12 +63,12 @@ def reset_game():
     st.session_state.game_state = "menu"
     st.session_state.password_obj = None
     st.session_state.guesses = []
-    st.session_state.difficulty = None
     st.session_state.input_guess = ""
+    st.session_state.difficulty = None
     st.session_state.hint_index = 0
     st.session_state.show_hint = False
     st.session_state.show_fact = False
-    
+
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
@@ -128,9 +121,12 @@ def main():
                 else:
                     st.warning(f"Guess must be {len(pwd)} characters.")
         with col2:
-            if st.button("Back to Menu"):
-                st.session_state.force_reset = True
-                st.experimental_rerun()
+            if st.button("Hint"):
+                st.session_state.show_hint = True
+                st.session_state.hint_index = min(
+                    st.session_state.hint_index + 1,
+                    len(st.session_state.password_obj.hints)
+                )
         with col3:
             if st.button("🔙 Back to Menu"):
                 reset_game()
