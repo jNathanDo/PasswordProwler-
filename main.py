@@ -104,12 +104,12 @@ def show_objective():
     Can you outsmart the system and become the ultimate **Password Prowler**?
     """)
 def run_game_logic():
-if st.session_state.get("use_timer", False):
-    st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
+    if st.session_state.get("use_timer", False):
+        st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
 
-if st.session_state.get("use_guess_limit", False):
-    guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
-    st.info(f"🧠 Guesses Left: {guesses_left}")
+    if st.session_state.get("use_guess_limit", False):
+        guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
+        st.info(f"🧠 Guesses Left: {guesses_left}")
 # Guess limit check
 if st.session_state.get("use_guess_limit", False):
     if len(st.session_state.guesses) >= st.session_state.guess_limit:
