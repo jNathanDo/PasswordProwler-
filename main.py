@@ -141,7 +141,7 @@ if st.session_state.get("use_guess_limit", False):
 
         if st.session_state.get("use_guess_limit", False):
             guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
-            st.info(f"🧠 Guesses Left: {guesses_left}")  where would this go
+            st.info(f"🧠 Guesses Left: {guesses_left}")
 
         guess = st.text_input("Enter your guess:", key="input_guess", max_chars=len(pwd))
 
