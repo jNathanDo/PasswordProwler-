@@ -128,6 +128,7 @@ def main():
     else:
         run_game_logic()
 
+  def run_game_logic():
     # --- Menu Screen ---
     if st.session_state.game_state == "menu":
         st.title("🔐 Password Prowler")
