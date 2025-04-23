@@ -224,7 +224,7 @@ def main():
         st.session_state.guess_limit_enabled = False
         reset_game()
 
-    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "Objective"])
+    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "About"])
 
     if nav == "Settings":
         show_settings()
