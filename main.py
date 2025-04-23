@@ -70,14 +70,13 @@ def reset_game():
     st.session_state.show_hint = False
     st.session_state.show_fact = False
     st.session_state.start_time = None
-    st.session_state.remaining_time = 180
-    st.session_state.guess_limit = 15
+    st.session_state.remaining_time = 180 if st.session_state.get("timer_enabled") else None
+    st.session_state.guess_limit = 15 if st.session_state.get("guess_limit_enabled") else None
 
 def show_settings():
     st.title("⚙️ Settings")
     st.session_state.timer_enabled = st.checkbox("Enable Timer", value=st.session_state.get("timer_enabled", False))
     st.session_state.guess_limit_enabled = st.checkbox("Enable Guess Limit", value=st.session_state.get("guess_limit_enabled", False))
-
     st.info("These settings will apply when you start a new game from the Home screen.")
 
 def show_rules():
@@ -103,32 +102,43 @@ def show_objective():
 
     Can you outsmart the system and become the ultimate **Password Prowler**?
     """)
-def run_game_logic():
-    if st.session_state.get("use_timer", False):
-        st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
 
-    if st.session_state.get("use_guess_limit", False):
+def run_game_logic():
+    # Timer check
+    if st.session_state.get("timer_enabled", False):
+        if st.session_state.start_time is None:
+            st.session_state.start_time = time.time()
+        elapsed = time.time() - st.session_state.start_time
+        st.session_state.remaining_time = max(0, 180 - int(elapsed))
+        st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
+        if st.session_state.remaining_time <= 0:
+            st.session_state.game_state = "failed"
+
+    # Guess limit check
+    if st.session_state.get("guess_limit_enabled", False):
         guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
         st.info(f"🧠 Guesses Left: {guesses_left}")
-    # Guess limit check
-    if st.session_state.get("use_guess_limit", False):
-        if len(st.session_state.guesses) >= st.session_state.guess_limit:
+        if guesses_left <= 0:
             st.session_state.game_state = "failed"
+
     # --- Menu Screen ---
     if st.session_state.game_state == "menu":
         st.title("🔐 Password Prowler")
         st.subheader("Choose a difficulty:")
         if st.button("Easy"):
             st.session_state.difficulty = Difficulty.EASY
-            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
-            st.session_state.game_state = "playing"
-        if st.button("Medium"):
+        elif st.button("Medium"):
             st.session_state.difficulty = Difficulty.MEDIUM
-            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
-            st.session_state.game_state = "playing"
-        if st.button("Hard"):
+        elif st.button("Hard"):
             st.session_state.difficulty = Difficulty.HARD
+
+        if st.session_state.difficulty:
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
+            st.session_state.guesses = []
+            st.session_state.show_hint = False
+            st.session_state.hint_index = 0
+            st.session_state.start_time = time.time() if st.session_state.get("timer_enabled") else None
+            st.session_state.remaining_time = 180 if st.session_state.get("timer_enabled") else None
             st.session_state.game_state = "playing"
 
     # --- Game Screen ---
@@ -136,12 +146,6 @@ def run_game_logic():
         pwd = st.session_state.password_obj.password
         st.title(f"Game Mode: {st.session_state.difficulty.name}")
         st.subheader(f"Guess the {len(pwd)}-character password!")
-        if st.session_state.get("use_timer", False):
-            st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
-
-        if st.session_state.get("use_guess_limit", False):
-            guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
-            st.info(f"🧠 Guesses Left: {guesses_left}")
 
         guess = st.text_input("Enter your guess:", key="input_guess", max_chars=len(pwd))
 
@@ -167,7 +171,6 @@ def run_game_logic():
             if st.button("🔙 Back to Menu"):
                 reset_game()
 
-        # Display previous guesses
         st.write("### Previous Guesses:")
         for guess_str, codes in st.session_state.guesses[-7:]:
             cols = st.columns(len(guess_str))
@@ -178,7 +181,6 @@ def run_game_logic():
                         unsafe_allow_html=True
                     )
 
-        # Show hints if requested
         if st.session_state.show_hint and st.session_state.hint_index > 0:
             st.info("### Hint:")
             for i in range(st.session_state.hint_index):
@@ -192,41 +194,32 @@ def run_game_logic():
         if st.session_state.show_fact and st.session_state.password_obj.facts:
             st.subheader("🔎 Did you know?")
             st.write(random.choice(st.session_state.password_obj.facts))
-
         if st.button("Play Again"):
             reset_game()
+
+    # --- Fail Screen ---
     elif st.session_state.game_state == "failed":
         st.title("❌ Game Over")
-        if st.session_state.get("use_timer", False) and st.session_state.remaining_time == 0:
+        if st.session_state.get("timer_enabled", False) and st.session_state.remaining_time == 0:
             st.error("You ran out of time!")
-        elif st.session_state.get("use_guess_limit", False):
+        elif st.session_state.get("guess_limit_enabled", False) and st.session_state.guess_limit is not None:
             st.error("You ran out of guesses!")
         else:
             st.error("Game ended.")
-
-    st.warning(f"The password was: `{st.session_state.password_obj.password}`")
-
-    if st.button("Play Again"):
-        reset_game()
+        st.warning(f"The password was: `{st.session_state.password_obj.password}`")
+        if st.button("Play Again"):
+            reset_game()
 
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
-    # --- Initial Session State ---
     if "game_state" not in st.session_state:
         st.session_state.game_state = "menu"
-        st.session_state.guesses = []
         st.session_state.data = parse_json()
-        st.session_state.password_obj = None
-        st.session_state.input_guess = ""
-        st.session_state.difficulty = None
-        st.session_state.hint_index = 0
-        st.session_state.show_hint = False
-        st.session_state.show_fact = False
         st.session_state.timer_enabled = False
         st.session_state.guess_limit_enabled = False
+        reset_game()
 
-    # --- Sidebar Navigation ---
     nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "Objective"])
 
     if nav == "Settings":
@@ -237,9 +230,6 @@ def main():
         show_objective()
     else:
         run_game_logic()
-        
-
- 
 
 if __name__ == "__main__":
     main()
