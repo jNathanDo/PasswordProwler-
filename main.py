@@ -108,11 +108,11 @@ def run_game_logic():
 if st.session_state.get("use_timer", False):
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
-    else:
-        elapsed = time.time() - st.session_state.start_time
-        st.session_state.remaining_time = max(0, 60 - int(elapsed))
-        if st.session_state.remaining_time == 0:
-            st.session_state.game_state = "failed"
+else:
+    elapsed = time.time() - st.session_state.start_time
+    st.session_state.remaining_time = max(0, 60 - int(elapsed))
+    if st.session_state.remaining_time == 0:
+        st.session_state.game_state = "failed"
 
 # Guess limit check
 if st.session_state.get("use_guess_limit", False):
