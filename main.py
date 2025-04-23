@@ -3,6 +3,7 @@ import random
 import json
 from enum import Enum
 
+
 class Difficulty(Enum):
     EASY = 1
     MEDIUM = 2
@@ -72,6 +73,10 @@ def reset_game():
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
+    if "rerun" in st.session_state and st.session_state.rerun:
+        st.session_state.rerun = False
+        st.session_state.rerun = True
+
     # --- Initial Session State ---
     if "game_state" not in st.session_state:
         st.session_state.game_state = "menu"
@@ -92,19 +97,19 @@ def main():
             st.session_state.difficulty = Difficulty.EASY
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+            st.session_state.rerun = True
 
         if st.button("Medium"):
             st.session_state.difficulty = Difficulty.MEDIUM
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+            st.session_state.rerun = True
 
         if st.button("Hard"):
             st.session_state.difficulty = Difficulty.HARD
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
             st.session_state.game_state = "playing"
-            st.experimental_rerun()
+            st.session_state.rerun = True
 
     
 
@@ -125,7 +130,7 @@ def main():
                     if all(code == 0 for code in color_codes):
                         st.session_state.game_state = "won"
                         st.session_state.show_fact = True
-                        st.experimental_rerun()
+                        st.session_state.rerun = True
 
                 else:
                     st.warning(f"Guess must be {len(pwd)} characters.")
@@ -139,7 +144,7 @@ def main():
         with col3:
            if st.button("Back to Menu"):
                reset_game()
-               st.experimental_rerun()
+               st.session_state.rerun = True
 
 
         # Display previous guesses
@@ -171,7 +176,7 @@ def main():
       
         if st.button("Play Again"):
             reset_game()
-            st.experimental_rerun()
+            st.session_state.rerun = True
       
 
 if __name__ == "__main__":
