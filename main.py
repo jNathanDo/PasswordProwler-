@@ -80,7 +80,7 @@ def show_settings():
     st.info("These settings will apply when you start a new game from the Home screen.")
 
 def show_rules():
-    st.title("📜 Rules")
+    st.title(" Rules")
     st.markdown("""
     - Choose a difficulty to start the game.
     - You will see how many letters are in the password.
@@ -94,7 +94,7 @@ def show_rules():
     """)
 
 def show_objective():
-    st.title("🎯 Objective")
+    st.title("Objective")
     st.markdown("""
     Your mission is to guess the secret password based on color feedback.
     
