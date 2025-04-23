@@ -104,30 +104,27 @@ def show_objective():
     """)
 
 def run_game_logic():
-    if st.session_state.get("timer_enabled", False) and st.session_state.game_state == "playing":
-        if "start_time" not in st.session_state or st.session_state.start_time is None:
+    # Timer check
+    if st.session_state.get("timer_enabled", False):
+        if st.session_state.start_time is None:
             st.session_state.start_time = time.time()
-
-        elapsed = int(time.time() - st.session_state.start_time)
-        st.session_state.remaining_time = max(0, 180 - elapsed)
-
-        if st.session_state.remaining_time == 0:
-            st.session_state.game_state = "failed"
-            return  # Stop running logic if time's up
-
-        # Display timer
+        elapsed = time.time() - st.session_state.start_time
+        st.session_state.remaining_time = max(0, 180 - int(elapsed))
         st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
+        if st.session_state.remaining_time <= 0:
+            st.session_state.game_state = "failed"
 
-        # Auto-refresh every second
-        time.sleep(1)
-        st.experimental_rerun()
-
+    # Guess limit check
     if st.session_state.get("guess_limit_enabled", False):
-        guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
-        st.info(f"🧠 Guesses Left: {guesses_left}")
+        guess_limit = st.session_state.get("guess_limit")
+        if guess_limit is None:
+            guess_limit = 15  # fallback default if not initialized
+            st.session_state.guess_limit = guess_limit
+        guesses_left = guess_limit - len(st.session_state.guesses)
+
+        st.info(f" Guesses Left: {guesses_left}")
         if guesses_left <= 0:
             st.session_state.game_state = "failed"
-            return
 
     # --- Menu Screen ---
     if st.session_state.game_state == "menu":
@@ -135,19 +132,19 @@ def run_game_logic():
         st.subheader("Choose a difficulty:")
         if st.button("Easy"):
             st.session_state.difficulty = Difficulty.EASY
-            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
-            st.session_state.game_state = "playing"
-            st.session_state.start_time = time.time() if st.session_state.get("timer_enabled") else None
-        if st.button("Medium"):
+        elif st.button("Medium"):
             st.session_state.difficulty = Difficulty.MEDIUM
-            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
-            st.session_state.game_state = "playing"
-            st.session_state.start_time = time.time() if st.session_state.get("timer_enabled") else None
-        if st.button("Hard"):
+        elif st.button("Hard"):
             st.session_state.difficulty = Difficulty.HARD
+
+        if st.session_state.difficulty:
             st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
-            st.session_state.game_state = "playing"
+            st.session_state.guesses = []
+            st.session_state.show_hint = False
+            st.session_state.hint_index = 0
             st.session_state.start_time = time.time() if st.session_state.get("timer_enabled") else None
+            st.session_state.remaining_time = 180 if st.session_state.get("timer_enabled") else None
+            st.session_state.game_state = "playing"
 
     # --- Game Screen ---
     elif st.session_state.game_state == "playing":
@@ -155,18 +152,17 @@ def run_game_logic():
         st.title(f"Game Mode: {st.session_state.difficulty.name}")
         st.subheader(f"Guess the {len(pwd)}-character password!")
 
-        temp_guess = st.text_input("Enter your guess:", max_chars=len(pwd))
+        guess = st.text_input("Enter your guess:", key="input_guess", max_chars=len(pwd))
 
         col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("Submit Guess"):
-                if len(temp_guess) == len(pwd):
-                    color_codes = get_color_codes(pwd, temp_guess)
-                    st.session_state.guesses.append((temp_guess, color_codes))
+                if len(guess) == len(pwd):
+                    color_codes = get_color_codes(pwd, guess)
+                    st.session_state.guesses.append((guess, color_codes))
                     if all(code == 0 for code in color_codes):
                         st.session_state.game_state = "won"
                         st.session_state.show_fact = True
-                    st.experimental_rerun()
                 else:
                     st.warning(f"Guess must be {len(pwd)} characters.")
         with col2:
@@ -179,7 +175,6 @@ def run_game_logic():
         with col3:
             if st.button("🔙 Back to Menu"):
                 reset_game()
-                st.experimental_rerun()
 
         st.write("### Previous Guesses:")
         for guess_str, codes in st.session_state.guesses[-7:]:
@@ -199,28 +194,27 @@ def run_game_logic():
 
     # --- Win Screen ---
     elif st.session_state.game_state == "won":
-        st.title("🎉 You Win!")
+        st.title("🎉 You Win!🎉")
         st.success(f"Password: `{st.session_state.password_obj.password}`")
         if st.session_state.show_fact and st.session_state.password_obj.facts:
-            st.subheader("🔎 Did you know?")
+            st.subheader(" Did you know?")
             st.write(random.choice(st.session_state.password_obj.facts))
         if st.button("Play Again"):
             reset_game()
-            st.experimental_rerun()
 
-    # --- Failed Screen ---
+    # --- Fail Screen ---
     elif st.session_state.game_state == "failed":
         st.title("❌ Game Over")
         if st.session_state.get("timer_enabled", False) and st.session_state.remaining_time == 0:
             st.error("You ran out of time!")
-        elif st.session_state.get("guess_limit_enabled", False):
+        elif st.session_state.get("guess_limit_enabled", False) and st.session_state.guess_limit is not None:
             st.error("You ran out of guesses!")
         else:
             st.error("Game ended.")
         st.warning(f"The password was: `{st.session_state.password_obj.password}`")
         if st.button("Play Again"):
             reset_game()
-            st.experimental_rerun()
+
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
