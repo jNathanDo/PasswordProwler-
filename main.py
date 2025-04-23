@@ -230,7 +230,7 @@ def main():
         show_settings()
     elif nav == "Rules":
         show_rules()
-    elif nav == "Objective":
+    elif nav == "About":
         show_objective()
     else:
         run_game_logic()
