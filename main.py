@@ -45,13 +45,13 @@ def get_color_codes(password, guess):
     for i, char in enumerate(guess):
         if i < len(password):
             if char == password[i]:
-                color_codes.append(0)
+                color_codes.append(0)  # Correct
             elif char.lower() == password[i].lower():
-                color_codes.append(1)
+                color_codes.append(1)  # Right char, wrong case
             elif char.lower() in password.lower():
-                color_codes.append(2)
+                color_codes.append(2)  # In password, wrong spot
             else:
-                color_codes.append(3)
+                color_codes.append(3)  # Not in password
         else:
             color_codes.append(3)
     return color_codes
@@ -60,51 +60,47 @@ def color_map(code):
     return ["green", "yellow", "orange", "red"][code]
 
 def reset_game():
-    st.session_state.game_state = "menu"
-    st.session_state.password_obj = None
-    st.session_state.guesses = []
-    st.session_state.input_guess = ""
-    st.session_state.difficulty = None
-    st.session_state.hint_index = 0
-    st.session_state.show_hint = False
-    st.session_state.show_fact = False
-    st.rerun()
-
-def start_game(diff):
-    st.session_state.difficulty = diff
-    st.session_state.password_obj = get_password(st.session_state.data, diff)
-    st.session_state.game_state = "playing"
-    st.session_state.guesses = []
-    st.session_state.input_guess = ""
-    st.session_state.hint_index = 0
-    st.session_state.show_hint = False
-    st.session_state.show_fact = False
-    st.rerun()
+    st.session_state.update({
+        "game_state": "menu",
+        "password_obj": None,
+        "guesses": [],
+        "input_guess": "",
+        "difficulty": None,
+        "hint_index": 0,
+        "show_hint": False,
+        "show_fact": False,
+        "clear_input": False,
+    })
 
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
-    # Initial session state
     if "game_state" not in st.session_state:
-        st.session_state.game_state = "menu"
         st.session_state.data = parse_json()
-        st.session_state.guesses = []
-        st.session_state.password_obj = None
-        st.session_state.input_guess = ""
-        st.session_state.difficulty = None
-        st.session_state.hint_index = 0
-        st.session_state.show_hint = False
-        st.session_state.show_fact = False
+        reset_game()
 
-    # Menu screen
+    # Clear input safely if flagged
+    if st.session_state.get("clear_input", False):
+        st.session_state.input_guess = ""
+        st.session_state.clear_input = False
+
     if st.session_state.game_state == "menu":
         st.title("🔐 Password Prowler")
         st.subheader("Choose a difficulty:")
-        st.button("Easy", on_click=start_game, args=(Difficulty.EASY,))
-        st.button("Medium", on_click=start_game, args=(Difficulty.MEDIUM,))
-        st.button("Hard", on_click=start_game, args=(Difficulty.HARD,))
+        col1, col2, col3 = st.columns(3)
+        if col1.button("Easy"):
+            st.session_state.difficulty = Difficulty.EASY
+            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
+            st.session_state.game_state = "playing"
+        if col2.button("Medium"):
+            st.session_state.difficulty = Difficulty.MEDIUM
+            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
+            st.session_state.game_state = "playing"
+        if col3.button("Hard"):
+            st.session_state.difficulty = Difficulty.HARD
+            st.session_state.password_obj = get_password(st.session_state.data, st.session_state.difficulty)
+            st.session_state.game_state = "playing"
 
-    # Playing screen
     elif st.session_state.game_state == "playing":
         pwd = st.session_state.password_obj.password
         st.title(f"Game Mode: {st.session_state.difficulty.name}")
@@ -118,11 +114,10 @@ def main():
                 if len(guess) == len(pwd):
                     color_codes = get_color_codes(pwd, guess)
                     st.session_state.guesses.append((guess, color_codes))
-                    st.session_state.input_guess = ""
+                    st.session_state.clear_input = True
                     if all(code == 0 for code in color_codes):
                         st.session_state.game_state = "won"
                         st.session_state.show_fact = True
-                        st.rerun()
                 else:
                     st.warning(f"Guess must be {len(pwd)} characters.")
         with col2:
@@ -136,7 +131,6 @@ def main():
             if st.button("🔙 Back to Menu"):
                 reset_game()
 
-        # Display guesses
         st.write("### Previous Guesses:")
         for guess_str, codes in st.session_state.guesses[-7:]:
             cols = st.columns(len(guess_str))
@@ -147,21 +141,18 @@ def main():
                         unsafe_allow_html=True
                     )
 
-        # Show hints
         if st.session_state.show_hint and st.session_state.hint_index > 0:
             st.info("### Hint:")
             for i in range(st.session_state.hint_index):
                 if i < len(st.session_state.password_obj.hints):
                     st.write(f"- {st.session_state.password_obj.hints[i]}")
 
-    # Win screen
     elif st.session_state.game_state == "won":
         st.title("🎉 You Win!")
         st.success(f"Password: `{st.session_state.password_obj.password}`")
         if st.session_state.show_fact and st.session_state.password_obj.facts:
             st.subheader("🔎 Did you know?")
             st.write(random.choice(st.session_state.password_obj.facts))
-
         if st.button("Play Again"):
             reset_game()
 
