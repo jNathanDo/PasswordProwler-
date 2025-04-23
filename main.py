@@ -136,6 +136,12 @@ if st.session_state.get("use_guess_limit", False):
         pwd = st.session_state.password_obj.password
         st.title(f"Game Mode: {st.session_state.difficulty.name}")
         st.subheader(f"Guess the {len(pwd)}-character password!")
+        if st.session_state.get("use_timer", False):
+            st.warning(f"⏳ Time Left: {st.session_state.remaining_time} seconds")
+
+        if st.session_state.get("use_guess_limit", False):
+            guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
+            st.info(f"🧠 Guesses Left: {guesses_left}")  where would this go
 
         guess = st.text_input("Enter your guess:", key="input_guess", max_chars=len(pwd))
 
