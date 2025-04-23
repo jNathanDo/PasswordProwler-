@@ -116,7 +116,12 @@ def run_game_logic():
 
     # Guess limit check
     if st.session_state.get("guess_limit_enabled", False):
-        guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
+        guess_limit = st.session_state.get("guess_limit")
+        if guess_limit is None:
+            guess_limit = 15  # fallback default if not initialized
+            st.session_state.guess_limit = guess_limit
+        guesses_left = guess_limit - len(st.session_state.guesses)
+
         st.info(f"🧠 Guesses Left: {guesses_left}")
         if guesses_left <= 0:
             st.session_state.game_state = "failed"
