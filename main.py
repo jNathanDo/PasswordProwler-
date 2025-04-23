@@ -236,13 +236,6 @@ def main():
     elif nav == "Objective":
         show_objective()
     else:
-        # --- Settings Screen ---
-        if st.session_state.game_state == "settings":
-            st.title("⚙️ Game Settings")
-        st.session_state.use_timer = st.checkbox("Enable Timer (60 seconds)", value=st.session_state.get("use_timer", False))
-        st.session_state.use_guess_limit = st.checkbox("Enable Guess Limit (7 guesses)", value=st.session_state.get("use_guess_limit", False))
-        if st.button("Back to Menu"):
-            st.session_state.game_state = "menu"
         run_game_logic()
         
 
