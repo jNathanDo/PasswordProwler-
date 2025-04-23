@@ -99,36 +99,7 @@ def show_objective():
 
     Can you outsmart the system and become the ultimate **Password Prowler**?
     """)
-def main():
-    st.set_page_config(page_title="Password Prowler", layout="centered")
-
-    # --- Initial Session State ---
-    if "game_state" not in st.session_state:
-        st.session_state.game_state = "menu"
-        st.session_state.guesses = []
-        st.session_state.data = parse_json()
-        st.session_state.password_obj = None
-        st.session_state.input_guess = ""
-        st.session_state.difficulty = None
-        st.session_state.hint_index = 0
-        st.session_state.show_hint = False
-        st.session_state.show_fact = False
-        st.session_state.timer_enabled = False
-        st.session_state.guess_limit_enabled = False
-
-    # --- Sidebar Navigation ---
-    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "Objective"])
-
-    if nav == "Settings":
-        show_settings()
-    elif nav == "Rules":
-        show_rules()
-    elif nav == "Objective":
-        show_objective()
-    else:
-        run_game_logic()
-
-  def run_game_logic():
+def run_game_logic():
     # --- Menu Screen ---
     if st.session_state.game_state == "menu":
         st.title("🔐 Password Prowler")
@@ -204,6 +175,37 @@ def main():
 
         if st.button("Play Again"):
             reset_game()
+
+def main():
+    st.set_page_config(page_title="Password Prowler", layout="centered")
+
+    # --- Initial Session State ---
+    if "game_state" not in st.session_state:
+        st.session_state.game_state = "menu"
+        st.session_state.guesses = []
+        st.session_state.data = parse_json()
+        st.session_state.password_obj = None
+        st.session_state.input_guess = ""
+        st.session_state.difficulty = None
+        st.session_state.hint_index = 0
+        st.session_state.show_hint = False
+        st.session_state.show_fact = False
+        st.session_state.timer_enabled = False
+        st.session_state.guess_limit_enabled = False
+
+    # --- Sidebar Navigation ---
+    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "Objective"])
+
+    if nav == "Settings":
+        show_settings()
+    elif nav == "Rules":
+        show_rules()
+    elif nav == "Objective":
+        show_objective()
+    else:
+        run_game_logic()
+
+ 
 
 if __name__ == "__main__":
     main()
