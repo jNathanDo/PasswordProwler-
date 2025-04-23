@@ -70,12 +70,13 @@ def reset_game():
     st.session_state.show_hint = False
     st.session_state.show_fact = False
 
+
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
-    if "rerun" in st.session_state and st.session_state.rerun:
+    if st.session_state.get("rerun", False):
         st.session_state.rerun = False
-        st.session_state.rerun = True
+        st.experimental_rerun()
 
     # --- Initial Session State ---
     if "game_state" not in st.session_state:
