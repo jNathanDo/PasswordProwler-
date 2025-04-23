@@ -83,6 +83,20 @@ def main():
         st.session_state.hint_index = 0
         st.session_state.show_hint = False
         st.session_state.show_fact = False
+        st.session_state.timer_enabled = False
+        st.session_state.guess_limit_enabled = False
+
+    # --- Sidebar Navigation ---
+    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "Objective"])
+
+    if nav == "Settings":
+        show_settings()
+    elif nav == "Rules":
+        show_rules()
+    elif nav == "Objective":
+        show_objective()
+    else:
+        run_game_logic()
 
     # --- Menu Screen ---
     if st.session_state.game_state == "menu":
@@ -159,6 +173,37 @@ def main():
 
         if st.button("Play Again"):
             reset_game()
+
+def show_settings():
+    st.title("⚙️ Settings")
+    st.session_state.timer_enabled = st.checkbox("Enable Timer", value=st.session_state.get("timer_enabled", False))
+    st.session_state.guess_limit_enabled = st.checkbox("Enable Guess Limit", value=st.session_state.get("guess_limit_enabled", False))
+
+    st.info("These settings will apply when you start a new game from the Home screen.")
+
+def show_rules():
+    st.title("📜 Rules")
+    st.markdown("""
+    - Choose a difficulty to start the game.
+    - You will see how many letters are in the password.
+    - Type in your guess and submit it.
+    - The color code will tell you how accurate your guess is:
+        - 🟩 **Green**: Correct letter in the correct spot.
+        - 🟨 **Yellow**: Correct letter, wrong case.
+        - 🟧 **Orange**: Letter is in the password but wrong spot.
+        - 🟥 **Red**: Letter not in the password.
+    - Use the **Hint** button for help (limited!).
+    """)
+
+def show_objective():
+    st.title("🎯 Objective")
+    st.markdown("""
+    Your mission is to guess the secret password based on color feedback.
+    
+    Each guess brings you closer, and hints help you uncover the password’s secrets.
+
+    Can you outsmart the system and become the ultimate **Password Prowler**?
+    """)
 
 if __name__ == "__main__":
     main()
