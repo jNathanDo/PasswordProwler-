@@ -80,7 +80,7 @@ def show_settings():
     st.info("These settings will apply when you start a new game from the Home screen.")
 
 def show_rules():
-    st.title("📜 Rules")
+    st.title("Rules")
     st.markdown("""
     - Choose a difficulty to start the game.
     - You will see how many letters are in the password.
@@ -94,7 +94,7 @@ def show_rules():
     """)
 
 def show_objective():
-    st.title("🎯 Objective")
+    st.title(" Objective")
     st.markdown("""
     Your mission is to guess the secret password based on color feedback.
     
@@ -122,7 +122,7 @@ def run_game_logic():
             st.session_state.guess_limit = guess_limit
         guesses_left = guess_limit - len(st.session_state.guesses)
 
-        st.info(f"🧠 Guesses Left: {guesses_left}")
+        st.info(f" Guesses Left: {guesses_left}")
         if guesses_left <= 0:
             st.session_state.game_state = "failed"
 
@@ -235,6 +235,19 @@ def main():
         show_objective()
     else:
         run_game_logic()
+        if st.session_state.get("use_timer", False):
+            if "start_time" not in st.session_state or st.session_state.start_time is None:
+                st.session_state.start_time = time.time()
+
+            elapsed = int(time.time() - st.session_state.start_time)
+            st.session_state.remaining_time = max(0, 180 - elapsed)
+            if st.session_state.remaining_time == 0:
+            st.session_state.game_state = "failed"
+
+    # Add auto-refresh every second
+            st.empty()
+            time.sleep(1)
+            st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
