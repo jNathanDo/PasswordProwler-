@@ -110,10 +110,10 @@ def run_game_logic():
     if st.session_state.get("use_guess_limit", False):
         guesses_left = st.session_state.guess_limit - len(st.session_state.guesses)
         st.info(f"🧠 Guesses Left: {guesses_left}")
-# Guess limit check
-if st.session_state.get("use_guess_limit", False):
-    if len(st.session_state.guesses) >= st.session_state.guess_limit:
-        st.session_state.game_state = "failed"
+    # Guess limit check
+    if st.session_state.get("use_guess_limit", False):
+        if len(st.session_state.guesses) >= st.session_state.guess_limit:
+            st.session_state.game_state = "failed"
     # --- Menu Screen ---
     if st.session_state.game_state == "menu":
         st.title("🔐 Password Prowler")
