@@ -82,11 +82,6 @@ def start_game(diff):
     st.rerun()
 
 def main():
-    # Initialize session state keys if not already set
-for key in ["input_guess", "clear_input", "game_state", "guesses", "hint_index", "show_hint", "show_fact", "difficulty", "password_obj"]:
-    if key not in st.session_state:
-        st.session_state[key] = "" if "guess" in key else False if "show" in key else None if "obj" in key else []
-
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
     # Initial session state
