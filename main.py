@@ -122,7 +122,7 @@ def run_game_logic():
             st.session_state.guess_limit = guess_limit
         guesses_left = guess_limit - len(st.session_state.guesses)
 
-        st.info(f"🧠 Guesses Left: {guesses_left}")
+        st.info(f" Guesses Left: {guesses_left}")
         if guesses_left <= 0:
             st.session_state.game_state = "failed"
 
@@ -194,10 +194,10 @@ def run_game_logic():
 
     # --- Win Screen ---
     elif st.session_state.game_state == "won":
-        st.title("🎉 You Win!")
+        st.title("🎉 You Win!🎉")
         st.success(f"Password: `{st.session_state.password_obj.password}`")
         if st.session_state.show_fact and st.session_state.password_obj.facts:
-            st.subheader("🔎 Did you know?")
+            st.subheader(" Did you know?")
             st.write(random.choice(st.session_state.password_obj.facts))
         if st.button("Play Again"):
             reset_game()
