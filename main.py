@@ -96,11 +96,10 @@ def show_rules():
 def show_objective():
     st.title("Objective")
     st.markdown("""
-    Your mission is to guess the secret password based on color feedback.
-    
-    Each guess brings you closer, and hints help you uncover the password’s secrets.
-
-    Can you outsmart the system and become the ultimate **Password Prowler**?
+    About Password Prowler Password Prowler is a fun and educational Wordle-style game designed to raise awareness to young children and the elderly about the importance of password strength and security online.
+    Created with Python and Tkinter, the game helps players understand what makes a good password.
+    Players must guess a secret password within a limited number of attempts, receiving color-coded feedback.
+    This game was designed as a final project for CSCI 3351, ""Script Writing in Python"", at the University of New Haven— enjoy and stay secure!
     """)
 
 def run_game_logic():
