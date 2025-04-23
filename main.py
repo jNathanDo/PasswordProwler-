@@ -94,7 +94,7 @@ def show_rules():
     """)
 
 def show_objective():
-    st.title("Objective")
+    st.title("About")
     st.markdown("""
     About Password Prowler Password Prowler is a fun and educational Wordle-style game designed to raise awareness to young children and the elderly about the importance of password strength and security online.
     Created with Python and Tkinter, the game helps players understand what makes a good password.
