@@ -134,7 +134,7 @@ EXPLANATION: <why it's better>
 """
     try:
         response = openai.ChatCompletion.create(
-            model= "gpt-3.5-turbo"
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7
         )
@@ -161,37 +161,6 @@ def show_password_improvement_tool():
                     st.info(explanation)
                 else:
                     st.warning(result)
-
-
-def show_password_tips():
-    st.title("🔐 Improve Your Passwords")
-    
-    st.markdown("""
-    ### Why strong passwords matter:
-    - Weak passwords are easily guessed or cracked.
-    - Reusing passwords across sites makes you vulnerable.
-    - Hackers use lists of common passwords and dictionary attacks.
-
-    ### Tips for stronger passwords:
-    - ✅ Use at least 12 characters.
-    - ✅ Mix **uppercase**, **lowercase**, **numbers**, and **symbols**.
-    - ✅ Avoid dictionary words, names, or keyboard patterns like `123456`, `qwerty`, `password`.
-    - ✅ Use a **passphrase** — longer is stronger!
-    - ✅ Use a **password manager** to store your strong passwords.
-    """)
-
-    st.markdown("---")
-    st.subheader("🔍 Test and Improve Your Password")
-
-    weak_pwd = st.text_input("Enter a password you'd like to improve:", key="ai_password_input", type="password")
-
-    if st.button("Suggest Stronger Password"):
-        if weak_pwd:
-            suggestion, reason = suggest_better_password(weak_pwd)
-            st.success(f"🔐 Suggested Stronger Password: `{suggestion}`")
-            st.info(f"💡 Why it's better:\n{reason}")
-        else:
-            st.warning("Please enter a password to improve.")
 
 
 
