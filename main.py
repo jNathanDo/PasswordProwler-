@@ -120,7 +120,7 @@ def run_game_logic():
 
 import os
 
-# Set your key securely (don't hardcode in production)
+# Set your key securely
 openai.api_key = st.secrets["openai"]["api_key"]
 
 def suggest_better_password(user_password):
@@ -313,18 +313,20 @@ def main():
         st.session_state.guess_limit_enabled = False
         reset_game()
 
-    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "About" , "Improve Your Passwords"])
+# Main navigation control
+st.sidebar.title("🔍 Navigation")
+nav = st.sidebar.selectbox("Go to", ["Home", "Settings", "Rules", "About", "Improve Passwords"])
 
-    if nav == "Settings":
-        show_settings()
-    elif nav == "Rules":
-        show_rules()
-    elif nav == "About":
-        show_objective()
-    elif nav == "Passwords Helper":
-        show_password_improvement_tool()
-    else:
-        run_game_logic()
+if nav == "Home":
+    run_game_logic()
+elif nav == "Settings":
+    show_settings()
+elif nav == "Rules":
+    show_rules()
+elif nav == "About":
+    show_objective()
+elif nav == "Improve Passwords":
+    show_password_improvement_tool()
 
 if __name__ == "__main__":
     main()
