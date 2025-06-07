@@ -5,7 +5,6 @@ import time
 import openai
 from enum import Enum
 
-
 st.set_page_config(page_title="Password Prowler", layout="centered")
 
 class Difficulty(Enum):
@@ -307,7 +306,6 @@ def show_password_tips():
 
 
 def main():
-    st.set_page_config(page_title="Password Prowler", layout="centered")
 
     if "game_state" not in st.session_state:
         st.session_state.game_state = "menu"
