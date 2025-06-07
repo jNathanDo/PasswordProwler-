@@ -114,7 +114,86 @@ def run_game_logic():
         if st.session_state.remaining_time <= 0:
             st.session_state.game_state = "failed"
             st.rerun()
-            
+
+
+
+import openai
+import os
+
+# Set your key securely (don't hardcode in production)
+openai.api_key = st.secrets["openai"]["api_key"]
+
+def suggest_better_password(user_password):
+    prompt = f"""Improve the following weak password and explain why the new password is better:
+Password: "{user_password}"
+Respond with the new password and a short explanation.
+Format: NEW PASSWORD: <password>
+EXPLANATION: <why it's better>
+"""
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # or "gpt-3.5-turbo" for lower cost
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        output = response.choices[0].message.content.strip()
+        return output
+    except Exception as e:
+        return f"Error: {e}"
+
+def show_password_improvement_tool():
+    st.title("🛡️ Improve Your Password")
+
+    user_input = st.text_input("Enter a password you currently use (or something similar):", type="password")
+
+    if st.button("Suggest Stronger Password"):
+        if user_input:
+            with st.spinner("Thinking..."):
+                result = suggest_better_password(user_input)
+                if "NEW PASSWORD:" in result:
+                    parts = result.split("EXPLANATION:")
+                    new_pwd = parts[0].replace("NEW PASSWORD:", "").strip()
+                    explanation = parts[1].strip() if len(parts) > 1 else "No explanation provided."
+                    st.success(f"**Suggested Password:** `{new_pwd}`")
+                    st.markdown("**Why it's better:**")
+                    st.info(explanation)
+                else:
+                    st.warning(result)
+
+
+def show_password_tips():
+    st.title("🔐 Improve Your Passwords")
+    
+    st.markdown("""
+    ### Why strong passwords matter:
+    - Weak passwords are easily guessed or cracked.
+    - Reusing passwords across sites makes you vulnerable.
+    - Hackers use lists of common passwords and dictionary attacks.
+
+    ### Tips for stronger passwords:
+    - ✅ Use at least 12 characters.
+    - ✅ Mix **uppercase**, **lowercase**, **numbers**, and **symbols**.
+    - ✅ Avoid dictionary words, names, or keyboard patterns like `123456`, `qwerty`, `password`.
+    - ✅ Use a **passphrase** — longer is stronger!
+    - ✅ Use a **password manager** to store your strong passwords.
+    """)
+
+    st.markdown("---")
+    st.subheader("🔍 Test and Improve Your Password")
+
+    weak_pwd = st.text_input("Enter a password you'd like to improve:", key="ai_password_input", type="password")
+
+    if st.button("Suggest Stronger Password"):
+        if weak_pwd:
+            suggestion, reason = suggest_better_password(weak_pwd)
+            st.success(f"🔐 Suggested Stronger Password: `{suggestion}`")
+            st.info(f"💡 Why it's better:\n{reason}")
+        else:
+            st.warning("Please enter a password to improve.")
+
+
+
+    
     # Guess limit check
     if st.session_state.get("guess_limit_enabled", False):
         guess_limit = st.session_state.get("guess_limit")
@@ -223,6 +302,7 @@ def run_game_logic():
         if st.button("Play Again"):
             reset_game()
 
+
 def main():
     st.set_page_config(page_title="Password Prowler", layout="centered")
 
@@ -233,7 +313,7 @@ def main():
         st.session_state.guess_limit_enabled = False
         reset_game()
 
-    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "About"])
+    nav = st.sidebar.selectbox("📋 Navigate", ["Home", "Settings", "Rules", "About" , "Improve Your Passwords"]])
 
     if nav == "Settings":
         show_settings()
@@ -241,6 +321,8 @@ def main():
         show_rules()
     elif nav == "About":
         show_objective()
+    elif nav == "Passwords Helper":
+        show_password_improvement_tool()
     else:
         run_game_logic()
 
