@@ -72,7 +72,8 @@ def reset_game():
     st.session_state.start_time = None
     st.session_state.remaining_time = 180 if st.session_state.get("timer_enabled") else None
     st.session_state.guess_limit = 15 if st.session_state.get("guess_limit_enabled") else None
-
+    st.rerun()  # 🚨 This forces Streamlit to immediately rerun and apply the new state
+    
 def show_settings():
     st.title("⚙️ Settings")
     st.session_state.timer_enabled = st.checkbox("Enable Timer", value=st.session_state.get("timer_enabled", False))
