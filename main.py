@@ -172,8 +172,7 @@ def run_game_logic():
                     len(st.session_state.password_obj.hints)
                 )
         with col3:
-            if st.button("🔙 Back to Menu"):
-                reset_game()
+            st.button("Play Again", on_click=reset_game)
 
         st.write("### Previous Guesses:")
         for guess_str, codes in st.session_state.guesses[-7:]:
