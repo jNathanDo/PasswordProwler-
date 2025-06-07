@@ -5,6 +5,9 @@ import time
 import openai
 from enum import Enum
 
+
+st.set_page_config(page_title="Password Prowler", layout="centered")
+
 class Difficulty(Enum):
     EASY = 1
     MEDIUM = 2
