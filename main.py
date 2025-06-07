@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import json
 import time
+import openai
 from enum import Enum
 
 class Difficulty(Enum):
@@ -117,7 +118,6 @@ def run_game_logic():
 
 
 
-import openai
 import os
 
 # Set your key securely (don't hardcode in production)
